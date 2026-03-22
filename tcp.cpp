@@ -1,9 +1,27 @@
 #include <sys/socket.h>
+#include <iostream>
 #include <stdint.h>
 #include <stdio.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
+#include <string>
+
+static void doSomething(int connfd){
+    std::string buffer(64, '\0');
+    ssize_t len = read(connfd, buffer.data(), buffer.size());
+    if(len == -1){
+        perror("read");
+        return;
+    }
+    if(len == 0){
+        return;
+    }
+    buffer.resize(len);
+    std::cout << "Client says: " << buffer << std::endl;
+    std::string resp = "Received\n";
+    write(connfd, resp.data(), resp.size());
+}
 
 int main(){
     int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -34,6 +52,7 @@ int main(){
         if(connfd < 0){
             continue;
         }
+        doSomething(connfd);
         close(connfd);
     }
 }
